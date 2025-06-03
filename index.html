@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tabungan & Catatan - Tema Hitam</title>
+<style>
+  body {
+    background-color: #121212;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 2rem;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  .container {
+    background-color: #1e1e1e;
+    padding: 2rem;
+    border-radius: 12px;
+    width: 380px;
+    box-shadow: 0 0 20px #00ff99aa;
+  }
+  h1 {
+    color: #00ff99;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+  .btn-group {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    justify-content: center;
+  }
+  .btn {
+    flex: 1;
+    padding: 0.8rem;
+    background: #00ff99;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    color: #121212;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  .btn:hover {
+    background: #00cc77;
+  }
+  .btn.active {
+    background: #009955;
+    color: #e0e0e0;
+    cursor: default;
+  }
+  section {
+    display: none;
+  }
+  section.active {
+    display: block;
+  }
+  label {
+    display: block;
+    margin-top: 0.8rem;
+    margin-bottom: 0.3rem;
+    font-weight: 600;
+  }
+  input[type="number"],
+  input[type="text"],
+  textarea {
+    width: 100%;
+    padding: 0.6rem;
+    border-radius: 6px;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+    resize: vertical;
+  }
+  textarea {
+    min-height: 80px;
+  }
+  button.submit-btn {
+    margin-top: 1rem;
+    width: 100%;
+    padding: 0.8rem;
+    background-color: #00ff99;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    cursor: pointer;
+    color: #121212;
+    transition: background-color 0.3s ease;
+  }
+  button.submit-btn:hover {
+    background-color: #00cc77;
+  }
+  .total {
+    text-align: center;
+    font-size: 2rem;
+    margin-top: 1rem;
+    color: #00ff99;
+    font-weight: 700;
+  }
+  .list {
+    margin-top: 1rem;
+    max-height: 180px;
+    overflow-y: auto;
+    border-top: 1px solid #333;
+    padding-top: 1rem;
+  }
+  .item {
+    background-color: #2a2a2a;
+    margin-bottom: 0.6rem;
+    padding: 0.6rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .note-text {
+    flex: 1;
+    color: #00ff99;
+    font-style: italic;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .amount {
+    color: #e0e0e0;
+    font-weight: 700;
+    min-width: 90px;
+    text-align: right;
+  }
+  .time {
+    color: #666;
+    font-size: 0.75rem;
+    min-width: 90px;
+    text-align: right;
+    font-family: monospace;
+  }
+  .delete-btn {
+    background: #ff5555;
+    border: none;
+    color: white;
+    border-radius: 4px;
+    padding: 0 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.9rem;
+    transition: background-color 0.3s ease;
+  }
+  .delete-btn:hover {
+    background: #cc4444;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>Tabungan & Catatan</h1>
+
+    <div class="btn-group">
+      <button class="btn active" id="tabunganBtn">Tabungan</button>
+      <button class="btn" id="catatanBtn">Buku Catatan</button>
+    </div>
+
+    <section id="tabunganSection" class="active">
+      <label for="amount">Jumlah Tabungan (Rp)</label>
+      <input type="number" id="amount" placeholder="Masukkan nominal" min="1" />
+
+      <label for="noteTabungan">Catatan (opsional)</label>
+      <input type="text" id="noteTabungan" placeholder="Misal: Nabung gaji" maxlength="50" />
+
+      <button class="submit-btn" id="addBtn">Tambah Tabungan</button>
+
+      <div class="total" id="totalSaldo">Rp 0</div>
+
+      <div class="list" id="historyList"></div>
+    </section>
+
+    <section id="catatanSection">
+      <label for="noteInput">Tulis Catatan</label>
+      <textarea id="noteInput" placeholder="Tulis catatan di sini..."></textarea>
+
+      <button class="submit-btn" id="saveNoteBtn">Simpan Catatan</button>
+
+      <div class="list" id="notesList"></div>
+    </section>
+  </div>
+
+  <script>
+    // Switch Mode
+    const tabunganBtn = document.getElementById('tabunganBtn');
+    const catatanBtn = document.getElementById('catatanBtn');
+    const tabunganSection = document.getElementById('tabunganSection');
+    const catatanSection = document.getElementById('catatanSection');
+
+    tabunganBtn.addEventListener('click', () => {
+      tabunganBtn.classList.add('active');
+      catatanBtn.classList.remove('active');
+      tabunganSection.classList.add('active');
+      catatanSection.classList.remove('active');
+    });
+
+    catatanBtn.addEventListener('click', () => {
+      catatanBtn.classList.add('active');
+      tabunganBtn.classList.remove('active');
+      catatanSection.classList.add('active');
+      tabunganSection.classList.remove('active');
+    });
+
+    // ===== Tabungan =====
+    const amountInput = document.getElementById('amount');
+    const noteTabunganInput = document.getElementById('noteTabungan');
+    const addBtn = document.getElementById('addBtn');
+    const totalSaldoEl = document.getElementById('totalSaldo');
+    const historyList = document.getElementById('historyList');
+
+    let totalSaldo = 0;
+    let history = [];
+
+    function formatRupiah(number) {
+      return 'Rp ' + number.toLocaleString('id-ID');
+    }
+
+    function tambahTabungan() {
+      const amount = parseInt(amountInput.value);
+      const note = noteTabunganInput.value.trim() || '-';
+
+      if (!amount || amount <= 0) {
+        alert('Masukkan jumlah tabungan yang valid!');
+        return;
+      }
+
+      const now = new Date();
+      const timeStr = now.toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
+
+      totalSaldo += amount;
+      history.unshift({ amount, note, time: timeStr });
+
+      updateTabunganUI();
+
+      amountInput.value = '';
+      noteTabunganInput.value = '';
+    }
+
+    function updateTabunganUI() {
+      totalSaldoEl.textContent = formatRupiah(totalSaldo);
+
+      historyList.innerHTML = '';
+      for (const item of history) {
+        const div = document.createElement('div');
+        div.className = 'item';
+
+        div.innerHTML = `
+          <div class="note-text" title="${item.note}">${item.note}</div>
+          <div class="amount">${formatRupiah(item.amount)}</div>
+          <div class="time">${item.time}</div>
+        `;
+        historyList.appendChild(div);
+      }
+    }
+
+    addBtn.addEventListener('click', tambahTabungan);
+    amountInput.addEventListener('keydown', e => { if (e.key === 'Enter') tambahTabungan(); });
+    noteTabunganInput.addEventListener('keydown', e => { if (e.key === 'Enter') tambahTabungan(); });
+
+    // ===== Buku Catatan =====
+    const noteInput = document.getElementById('noteInput');
+    const saveNoteBtn = document.getElementById('saveNoteBtn');
+    const notesList = document.getElementById('notesList');
+
+    let notes = [];
+
+    function saveNote() {
+      const text = noteInput.value.trim();
+      if (!text) {
+        alert('Catatan tidak boleh kosong!');
+        return;
+      }
+
+      const now = new Date();
+      const timeStr = now.toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
+
+      notes.unshift({ text, time: timeStr });
+
+      updateNotesUI();
+
+      noteInput.value = '';
+    }
+
+    function updateNotesUI() {
+      notesList.innerHTML = '';
+      notes.forEach((note, index) => {
+        const div = document.createElement('div');
+        div.className = 'item';
+
+        const noteText = document.createElement('div');
+        noteText.className = 'note-text';
+        noteText.title = note.text;
+        noteText.textContent = note.text;
+
+        const noteTime = document.createElement('div');
+        noteTime.className = 'time';
+        noteTime.textContent = note.time;
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'delete-btn';
+        delBtn.textContent = 'Hapus';
+        delBtn.addEventListener('click', () => {
+          notes.splice(index, 1);
+          updateNotesUI();
+        });
+
+        div.appendChild(noteText);
+        div.appendChild(noteTime);
+        div.appendChild(delBtn);
+
+        notesList.appendChild(div);
+      });
+    }
+
+    saveNoteBtn.addEventListener('click', saveNote);
+    noteInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        saveNote();
+      }
+    });
+  </script>
+</body>
+</html>
